@@ -482,7 +482,13 @@ impl AudioUnit {
         // Pre-allocate a buffer list for input stream.
         //
         // First, get the current buffer size for pre-allocating the `AudioBuffer`s.
+        #[cfg(target_os = "macos")]
         let id = sys::kAudioDevicePropertyBufferFrameSize;
+        let mut buffer_frame_size: u32 = if cfg!(target_os = "macos") {
+            self.get_property(id, Scope::Global, Element::Output)?
+        } else {
+            512
+        };
         let mut buffer_frame_size: u32 = self.get_property(id, Scope::Global, Element::Output)?;
         let mut data: Vec<u8> = vec![];
         let sample_bytes = stream_format.sample_format.size_in_bytes();
